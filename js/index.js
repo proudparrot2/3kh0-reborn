@@ -63,11 +63,13 @@ async function getCDN(cdns) {
 const path = location.pathname;
 const origin = localStorage.getItem("instance");
 const cdn = localStorage.getItem("cdn");
-const bare = localStorage.getItem
+const getbare = localStorage.getItem("bare")
 const queryString = window.location.search;
 window.history.pushState({}, "", path);
 const urlParams = new URLSearchParams(queryString);
 const onLoadData = urlParams.get("onload");
+
+
 
 function clearCdnCache() {
   fetch("./assets/json/cdns.json")
@@ -99,11 +101,37 @@ if (!cdn) {
     });
 }
 
-if (!cdn) {
-  fetch("./assets/json/cdns.json")
+async function isBareBlocked(url) {
+  try {
+    var README = await fetch(url);
+    var content = await README.json();
+    if (content.versions[0] == "v1") {
+      // The Bare is not blocked
+      return false;
+    } else {
+      // The Bare is not returning a valid response or is blocked
+      return true;
+    }
+  } catch {
+    return true;
+  }
+}
+
+async function getBare(cdns) {
+  for (let cdn of cdns) {
+    var blocked = await isBareBlocked(cdn);
+    if (!blocked) {
+      return cdn;
+    }
+  }
+  return cdns[0];
+}
+
+if (!getbare) {
+  fetch("./assets/json/bares.json")
     .then((res) => res.json())
-    .then(async (cdns) => {
-      localStorage.setItem("cdn", await getCDN(cdns));
+    .then(async (bares) => {
+      localStorage.setItem("bare", await getBare(bares));
       location.reload();
     });
 }
@@ -116,6 +144,12 @@ const instance = encodeURIComponent(origin.replace(location.origin, ""));
 window.addEventListener("error", (e) => {
   console.error(e);
 });
+
+async function registerSW() {
+  await navigator.serviceWorker.register(stockSW, {
+    scope: __uv$config.prefix,
+  });
+}
 
 // Add the main script in the <head> tags
 

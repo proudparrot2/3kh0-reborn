@@ -3,7 +3,8 @@
     const urlParams = new URLSearchParams(search);
     const gameSubpath = urlParams.get("game");
     const origin = localStorage.getItem("instance");
-    const cdn = localStorage.getItem("cdn");
+    const cdn = formatUrl("https://raw.githack.com/3kh0/3kh0-assets/main/")
+    alert(cdn)
     const instance = origin.replace(location.origin, "");
   
     if (!origin || !cdn) {
@@ -18,7 +19,7 @@
           if (game) {
             const { name, root, img, file } = game;
             document.title = `Play ${name} | 3kh0`;
-            window.history.pushState({}, "", `${origin}games/${gameSubpath}`);
+            //window.history.pushState({}, "", `${origin}games/${gameSubpath}`);
             document.querySelector("#game").textContent = name;
             document.querySelector(".loader").innerHTML = `<img src="${cdn}${root}/${img}" class="game_img" loading="lazy" onerror="this.src='/assets/globe.svg'"/>`;
             document.querySelector("#startgame").classList.remove("hidden");
